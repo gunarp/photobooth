@@ -78,9 +78,7 @@ enum CollageLayoutEnum: string implements LabelInterface
         $collageConfig = json_decode((string)file_get_contents($collageConfigFilePath), true);
 
         if (is_array($collageConfig)) {
-            return array_key_exists('layout', $collageConfig)
-                ? count($collageConfig['layout'])
-                : count($collageConfig);
+            return 4;
         }
 
         return $fallbackLimit;

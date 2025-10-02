@@ -99,7 +99,7 @@ const photoBooth = (function () {
     };
 
     api.reset = function () {
-        loader.css('--stage-background', 'var(--background-countdown-color)');
+        loader.css('--stage-background', config.colors.background_countdown);
         loader.removeClass('stage--active');
         loaderButtonBar.empty();
         loaderMessage.empty();
@@ -556,7 +556,7 @@ const photoBooth = (function () {
             data.file = chromaFile;
         }
 
-        loader.css('--stage-background', 'var(--background-countdown-color)');
+        loader.css('--stage-background', config.colors.background_countdown);
 
         api.callTakePicApi(data, retry);
     };
@@ -651,7 +651,7 @@ const photoBooth = (function () {
                         // collage with interruption
                         if (result.current + 1 < result.limit) {
                             const takePictureButton = $(
-                                '<button type="button" class="button collageNext rotaryfocus" id="btnCollageNext">'
+                                '<button type="button" class="button rotaryfocus" id="btnCollageNext">'
                             );
                             takePictureButton.append(
                                 '<span class="button--icon"><i class="' + config.icons.take_picture + '"></i></span>'
@@ -668,7 +668,7 @@ const photoBooth = (function () {
                             remoteBuzzerClient.collageWaitForNext();
                         } else {
                             const collageProcessButton = $(
-                                '<button type="button" class="button collageProcess rotaryfocus" id="btnCollageProcess">'
+                                '<button type="button" class="button rotaryfocus" id="btnCollageProcess">'
                             );
                             collageProcessButton.append(
                                 '<span class="button--icon"><i class="' + config.icons.save + '"></i></span>'
@@ -689,7 +689,7 @@ const photoBooth = (function () {
                             remoteBuzzerClient.collageWaitForProcessing();
                         }
 
-                        const retakeButton = $('<button type="button" class="button collageRetake rotaryfocus">');
+                        const retakeButton = $('<button type="button" class="button rotaryfocus">');
                         retakeButton.append(
                             '<span class="button--icon"><i class="' + config.icons.refresh + '"></i></span>'
                         );
@@ -708,7 +708,7 @@ const photoBooth = (function () {
                             });
                         });
 
-                        const abortButton = $('<button type="button" class="button collageAbort rotaryfocus">');
+                        const abortButton = $('<button type="button" class="button rotaryfocus">');
                         abortButton.append(
                             '<span class="button--icon"><i class="' + config.icons.delete + '"></i></span>'
                         );
@@ -910,7 +910,7 @@ const photoBooth = (function () {
         videoSensor.hide();
         previewVideo.hide();
         videoBackground.hide();
-        loader.css('--stage-background', 'var(--background-countdown-color)');
+        loader.css('--stage-background', config.colors.background_countdown);
         loaderMessage.html(
             '<i class="' + config.icons.spinner + '"></i><br>' + photoboothTools.getTranslation('busyVideo')
         );
@@ -1109,19 +1109,24 @@ const photoBooth = (function () {
 
         if (config.print.auto && config.filters.enabled === false) {
             setTimeout(function () {
-                photoboothTools.printImage(filename, () => {
+                photoboothTools.printImage(filename, 1, () => {
                     remoteBuzzerClient.inProgress(false);
                 });
             }, config.print.auto_delay);
         }
 
-        buttonPrint.off('click').on('click', (event) => {
+        buttonPrint.off('click').on('click', async (event) => {
             event.preventDefault();
             event.stopPropagation();
-            photoboothTools.printImage(filename, () => {
-                remoteBuzzerClient.inProgress(false);
-                buttonPrint.trigger('blur');
-            });
+
+            const copies = config.print.max_multi === 1 ? 1 : await photoboothTools.askCopies();
+
+            if (copies && !isNaN(copies)) {
+                photoboothTools.printImage(filename, copies, () => {
+                    remoteBuzzerClient.inProgress(false);
+                    buttonPrint.trigger('blur');
+                });
+            }
         });
 
         resultPage

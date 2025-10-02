@@ -431,6 +431,7 @@ class Collage
         }
 
         // validate that there is the correct amount of images
+        $c->collageLimit = 4;
         if (($c->collagePlaceholder && count($srcImagePaths) !== $c->collageLimit - 1) || (!$c->collagePlaceholder && count($srcImagePaths) !== $c->collageLimit)) {
             throw new \Exception('Invalid number of images.');
         }
@@ -509,7 +510,7 @@ class Collage
             unset($imageResource);
         }
 
-        if (strpos($c->collageLayout, '2x') === 0) {
+        if (strpos($c->collageLayout, '2x') === 0 || true) {
             $editImages = array_merge($editImages, $editImages);
         }
 

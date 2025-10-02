@@ -33,6 +33,7 @@ try {
     $imageHandler->debugLevel = $config['dev']['loglevel'];
     $vars['randomName'] = $imageHandler->createNewFilename('random');
     $vars['fileName'] = $_GET['filename'];
+    $vars['copies'] = $_GET['copies'];
     $vars['uniqueName'] = substr($vars['fileName'], 0, -4) . '-' . $vars['randomName'];
     $vars['sourceFile'] = FolderEnum::IMAGES->absolute() . DIRECTORY_SEPARATOR . $vars['fileName'];
     $vars['printFile'] = FolderEnum::PRINT->absolute() . DIRECTORY_SEPARATOR . $vars['uniqueName'];
@@ -188,7 +189,8 @@ if (!file_exists($vars['printFile'])) {
 // print image
 $status = 'ok';
 $linecount = 0;
-$cmd = sprintf($config['commands']['print'], $vars['printFile']);
+$cmd = sprintf($config['commands']['print'], $vars['copies'], $vars['printFile']);
+$logger->info($cmd);
 $cmd .= ' 2>&1'; //Redirect stderr to stdout, otherwise error messages get lost.
 
 exec($cmd, $output, $returnValue);
@@ -223,7 +225,14 @@ if ($returnValue !== 0) {
 }
 
 if ($status === 'ok') {
-    $printManager->addToPrintDb($vars['fileName'], $vars['uniqueName']);
+    $copies = (int)$vars['copies'];
+    if ($copies === 1) {
+        $printManager->addToPrintDb($vars['fileName'], $vars['uniqueName']);
+    } else {
+        for ($i = 1; $i <= $copies; $i++) {
+            $printManager->addToPrintDb($vars['fileName'], $vars['uniqueName'] . '-' . $i);
+        }
+    }
 
     if ($config['print']['limit'] > 0) {
         $linecount = $printManager->getPrintCountFromDB();
